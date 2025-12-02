@@ -51,5 +51,4 @@ def predict():
     
     # Return the predicted class and probability as JSON
     return jsonify({'prediction': predicted_class, 'probability': float(probability)})
-if __name__ == "__main__":
-    app.run(debug=True)
+
