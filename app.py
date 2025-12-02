@@ -5,6 +5,7 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import numpy as np
 from PIL import Image
 import io
+import gunicorn
 
 app = Flask(__name__)
 
@@ -51,6 +52,3 @@ def predict():
     
     # Return the predicted class and probability as JSON
     return jsonify({'prediction': predicted_class, 'probability': float(probability)})
-
-if __name__ == "__main__":
-    app.run(debug=False)
