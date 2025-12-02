@@ -1,15 +1,31 @@
 import os
+import tensorflow as tf
 from flask import Flask, request, jsonify, render_template
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import numpy as np
 from PIL import Image
 import io
+import gdown
 
 app = Flask(__name__)
 
-# Load your trained model
-model = load_model('potato_model.h5')
+# Define global model variable
+model = None
+
+def load_model_once():
+    global model
+    if model is None:  # Check if the model is already loaded
+        file_id = '1Q8YCGdl16MNrTaMlZnCHcd1eQnHM-CXx'
+        output = 'potato_model.h5'
+        
+        # Download the model file from Google Drive if not already downloaded
+        gdown.download(f'https://drive.google.com/uc?id={file_id}', output, quiet=False)
+        
+        # Load the model after downloading
+        model = tf.keras.models.load_model(output)
+        print("Model loaded successfully.")
+    return model
 
 @app.route('/')
 def index():
@@ -21,6 +37,9 @@ class_labels = {1: 'potato_healthy', 0: 'potato_early_blight', 2: 'potato_late_b
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    # Load the model once (if not already loaded)
+    model = load_model_once()
+
     # Get the uploaded image file
     file = request.files['image']
     
@@ -51,4 +70,3 @@ def predict():
     
     # Return the predicted class and probability as JSON
     return jsonify({'prediction': predicted_class, 'probability': float(probability)})
-
