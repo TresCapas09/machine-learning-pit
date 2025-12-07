@@ -60,16 +60,34 @@
             Drag and drop your image here, or click to browse.
           </p>
           <p class="upload-text-sub">
-            Supports JPG, PNG, (Max 10MB)
+            Supports JPG, PNG, WEBP (Max 10MB)
           </p>
-
-          <input type="file" class="upload-input" id="fileInput" />
+          
+          <!-- Enhanced Upload Button -->
+          <div class="upload-button-wrapper">
+            <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+              Choose File
+            </button>
+            <span class="upload-filename" id="fileName">No file chosen</span>
+          </div>
+          
+          <input type="file" class="upload-input" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.gif" />
         </div>
 
         <!-- Image Preview Section -->
         <div id="imagePreviewContainer" style="display:none;">
           <h3>Uploaded Image</h3>
           <img id="uploadedImage" src="" alt="Uploaded potato leaf image" class="uploaded-image" />
+          <div class="preview-actions">
+            <button class="action-button verify-button" id="verifyButton">
+              <span class="verify-icon">🔍</span>
+              Verify & Classify Image
+            </button>
+            <button class="action-button remove-button" id="removeButton">
+              <span class="remove-icon">🗑️</span>
+              Remove
+            </button>
+          </div>
         </div>
 
         <div class="upload-tip">
@@ -85,12 +103,71 @@
       </div>
     </section>
 
-    <!-- Results Section -->
+    <!-- Verification Popup -->
+    <div id="verificationPopup" class="popup-overlay">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h3>Verify & Classify Image</h3>
+          <button class="popup-close" id="closePopup">&times;</button>
+        </div>
+        
+        <div class="verification-body">
+          <div class="verification-icon">
+            <div class="scanning-animation">
+              <div class="scanner-line"></div>
+              <div class="scanning-image-container">
+                <img id="scanningImage" src="" alt="Image being scanned" class="scanning-image" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="verification-text">
+            <h4>Classifying Potato Leaf Image</h4>
+            <p>Our model is analyzing the uploaded image for disease patterns...</p>
+          </div>
+          
+          <div class="verification-progress">
+            <div class="progress-steps">
+              <div class="progress-step active" data-step="1">
+                <span class="step-number">1</span>
+                <span class="step-text">Image Processing</span>
+              </div>
+              <div class="progress-step" data-step="2">
+                <span class="step-number">2</span>
+                <span class="step-text">Feature Extraction</span>
+              </div>
+              <div class="progress-step" data-step="3">
+                <span class="step-number">3</span>
+                <span class="step-text">Disease Analysis</span>
+              </div>
+              <div class="progress-step" data-step="4">
+                <span class="step-number">4</span>
+                <span class="step-text">Results Generation</span>
+              </div>
+            </div>
+            
+            <div class="progress-bar-container">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="progress-text" id="progressText">0% Complete</div>
+            </div>
+          </div>
+          
+          <div class="verification-footer">
+            <button class="verification-cancel" id="cancelVerification">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Results Section - Make sure this exists -->
     <section id="results" class="section" style="display: none;">
       <div class="result-card">
         <div class="result-header">
           <div class="result-header-left">
-            <div class="result-header-icon"></div>
+            <div class="result-header-icon">
+              <span id="resultIcon">🍃</span>
+            </div>
             <div>
               <h3>Classification Result:</h3>
               <p id="result-disease">Loading...</p>
@@ -131,7 +208,6 @@
         </div>
       </div>
     </section>
-
     <!-- Disease Cards -->
     <section id="diseases" class="section">
       <div class="section-header center">
@@ -209,6 +285,7 @@
         <span class="footer-leaf">🍃</span>
         <span class="footer-title">PotatoCare</span>
       </div>
+      <p class="footer-note">AI-powered agricultural diagnostics for potato farmers</p>
     </div>
   </footer>
 
