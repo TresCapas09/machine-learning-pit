@@ -20,8 +20,14 @@ NOT_LEAF_THRESHOLD = 0.42          # low confidence = not a leaf
 HEALTHY_CLASS_THRESHOLD = 0.75      # 75% healthy threshold
 MIN_GREEN_RATIO = 0.12              # green pixel ratio
 
-# Load model ONCE
-MODEL = load_model("final_potato_model_v2.keras")
+# Lazy model (load on first use)
+MODEL = None
+
+def get_model():
+    global MODEL
+    if MODEL is None:
+        MODEL = load_model("final_potato_model_v2.keras")
+    return MODEL
 
 CLASS_LABELS = {
     0: "potato_early_blight",
@@ -93,11 +99,8 @@ def predict():
     file = request.files["image"]
     img = Image.open(io.BytesIO(file.read())).convert("RGB")
 
-    # ================================
     # Step 1 — GREEN CONTENT CHECK
-    # ================================
     green_ratio = compute_green_ratio(img)
-
     if green_ratio < MIN_GREEN_RATIO:
         return jsonify({
             "prediction": "not_leaf",
@@ -105,16 +108,13 @@ def predict():
             "green_ratio": float(green_ratio)
         })
 
-    # ================================
     # Step 2 — Build multi-zoom inputs
-    # ================================
     zoom_factors = (1.0, 0.9, 0.8, 0.7)
     input_batch = make_zoom_crops(img, zoom_factors)
 
-    # ================================
-    # Step 3 — Predict using ensemble
-    # ================================
-    predictions = MODEL.predict(input_batch, verbose=0)
+    # Step 3 — Predict using ensemble (model lazily loaded here)
+    model = get_model()
+    predictions = model.predict(input_batch, verbose=0)
     predictions_mean = predictions.mean(axis=0)
 
     early_prob, healthy_prob, late_prob = map(float, predictions_mean)
@@ -122,9 +122,7 @@ def predict():
     final_prob = float(predictions_mean[final_idx])
     raw_top_class = CLASS_LABELS[final_idx]
 
-    # ================================
     # Step 4 — Low confidence = not a leaf
-    # ================================
     if final_prob < NOT_LEAF_THRESHOLD:
         return jsonify({
             "prediction": "not_leaf",
@@ -132,31 +130,23 @@ def predict():
             "confidence": final_prob,
         })
 
-    # ================================
     # Step 5 — Healthy threshold logic
-    # ================================
     final_label = raw_top_class
-
     if raw_top_class == "potato_healthy":
         if healthy_prob < HEALTHY_CLASS_THRESHOLD:
             final_label = "potato_early_blight" if early_prob >= late_prob else "potato_late_blight"
 
-    # Convert to friendly label
     readable_label = {
         "potato_early_blight": "Early Blight",
         "potato_healthy": "Healthy",
         "potato_late_blight": "Late Blight"
     }[final_label]
 
-    # ================================
-    # RETURN JSON RESULT
-    # ================================
     return jsonify({
         "final_prediction": final_label,
         "readable_prediction": readable_label,
         "confidence": final_prob,
     })
-
 
 # ================================
 # MAIN - uncomment to debug locally
