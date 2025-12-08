@@ -90,6 +90,10 @@ def make_zoom_crops(pil_img, zoom_factors=(1.0, 0.9, 0.8, 0.7)):
 def index():
     return render_template("index.html")
 
+@app.route("/health")
+def health():
+    return "OK", 200
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
